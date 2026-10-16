@@ -131,12 +131,15 @@ export const StockpileModel3D: React.FC<StockpileModel3DProps> = ({
             <polygon points={box.top} fill="#f59e0b" stroke="#fde68a" strokeWidth="1.5" />
             {tiers > 1 && <polygon points={box.layer} fill="none" stroke="#78350f" strokeWidth="2" strokeDasharray="5 4" />}
             {(stock.fastening?.has_ratchet_straps || stock.fastening?.has_anchor_wires) && (
-              <g stroke="#f8fafc" strokeWidth="2" strokeDasharray="4 3">
-                <line x1="337" y1="186" x2="422" y2="143" />
-                <line x1="354" y1="199" x2="439" y2="156" />
-              </g>
+              <path
+                d={`M ${box.top.split(' ')[0]} L ${box.top.split(' ')[2]} M ${box.top.split(' ')[1]} L ${box.top.split(' ')[3]}`}
+                fill="none"
+                stroke="#f8fafc"
+                strokeWidth="2"
+                strokeDasharray="4 3"
+              />
             )}
-            <g stroke="#38bdf8" strokeWidth="3" strokeDasharray="7 6" markerEnd="url(#wind-arrow-head)" opacity="0.9">
+            <g transform={`rotate(${(weather.wind_direction_deg + 180) % 360} 109 116)`} stroke="#38bdf8" strokeWidth="3" strokeDasharray="7 6" markerEnd="url(#wind-arrow-head)" opacity="0.9">
               <line x1="44" y1="92" x2="174" y2="92" />
               <line x1="44" y1="116" x2="174" y2="116" />
               <line x1="44" y1="140" x2="174" y2="140" />

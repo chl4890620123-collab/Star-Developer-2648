@@ -61,19 +61,20 @@ export function evaluateHazards(
   sensitivityInsight: string;
 } {
   // 1. 유효 풍속 및 순간 돌풍 계산
-  const effectiveWind = getEffectiveWindSpeed(weather.wind_speed_ms, location.elevation_m, location.exposure_conditions);
-  const effectiveGust = getEffectiveWindSpeed(weather.gust_speed_ms, location.elevation_m, location.exposure_conditions);
+  const effectiveWind = getEffectiveWindSpeed(weather.wind_speed_ms || 7.2, location.elevation_m || 0, location.exposure_conditions || 'SEMI_ENCLOSED');
+  const effectiveGust = getEffectiveWindSpeed(weather.gust_speed_ms || 11.4, location.elevation_m || 0, location.exposure_conditions || 'SEMI_ENCLOSED');
 
-  // 2. 물리적 형상 및 질량 계산
-  const singleMass = material.mass_kg;
-  const totalCount = stock.count;
+  // 2. 물리적 형상 및 질량 계산 (결측치 안전 폴백)
+  const singleMass = Math.max(0.1, material.mass_kg || 10.0);
+  const totalCount = Math.max(0, stock.count ?? 1);
   const totalMass = singleMass * totalCount;
   const totalWeightN = totalMass * GRAVITY;
 
-  // 전체 적재 형상 (단수 반영)
-  const stackHeight = material.dimensions.height_m * Math.max(1, stock.stack_tiers);
-  const stackLength = material.dimensions.length_m;
-  const stackWidth = material.dimensions.width_m;
+  // 전체 적재 형상 (단수 반영 및 결측치 방어)
+  const dims = material.dimensions || { length_m: 2.0, width_m: 1.0, height_m: 0.1 };
+  const stackHeight = Math.max(0.05, (dims.height_m || 0.1) * Math.max(1, stock.stack_tiers || 1));
+  const stackLength = Math.max(0.1, dims.length_m || 2.0);
+  const stackWidth = Math.max(0.1, dims.width_m || 1.0);
 
   // 풍하중 수압 면적 A_proj (풍향에 따라 수직면)
   let projArea = stackLength * stackHeight;
@@ -82,32 +83,44 @@ export function evaluateHazards(
     projArea = stackWidth * stackHeight;
   }
 
-  // 결속력 환산 (kN -> N)
+  // 결속력 환산 (kN -> N, 결측치 안전 방어)
+  const fastening = stock.fastening || {
+    has_ratchet_straps: false,
+    strap_tension_kn: 0,
+    has_anchor_wires: false,
+    wire_capacity_kn: 0,
+    has_wind_net: false,
+  };
   let strapForceN = 0;
   let strapResistMomentNm = 0;
-  if (stock.fastening.has_ratchet_straps) {
-    strapForceN += stock.fastening.strap_tension_kn * 1000;
+  if (fastening.has_ratchet_straps) {
+    strapForceN += (fastening.strap_tension_kn || 0) * 1000;
     // 래칫 벨트가 바닥으로 당겨주는 모멘트 기여 (B/2 지점 가정)
     strapResistMomentNm += strapForceN * (stackWidth / 2);
   }
-  if (stock.fastening.has_anchor_wires) {
-    strapForceN += stock.fastening.wire_capacity_kn * 1000 * 0.7; // 유효 장력
-    strapResistMomentNm += stock.fastening.wire_capacity_kn * 1000 * 0.7 * (stackWidth / 2);
+  if (fastening.has_anchor_wires) {
+    strapForceN += (fastening.wire_capacity_kn || 0) * 1000 * 0.7; // 유효 장력
+    strapResistMomentNm += (fastening.wire_capacity_kn || 0) * 1000 * 0.7 * (stackWidth / 2);
   }
 
   // ==========================================
   // [A] 미끄러짐 (Sliding) 계산
   // ==========================================
+  const dragCoeff = material.drag_coefficient || 1.2;
+  const liftCoeff = material.lift_coefficient || 0.3;
+  const frictionCoeff = stock.friction_coefficient || 0.4;
   const q_gust = 0.5 * AIR_DENSITY * Math.pow(effectiveGust, 2);
-  const dragForceN = q_gust * material.drag_coefficient * projArea;
-  const liftForceN = q_gust * material.lift_coefficient * topArea;
+  const dragForceN = q_gust * dragCoeff * projArea;
+  const liftForceN = q_gust * liftCoeff * topArea;
   const effectiveNormalForceN = Math.max(0, totalWeightN + strapForceN - liftForceN);
-  const frictionForceN = stock.friction_coefficient * effectiveNormalForceN + (stock.fastening.has_anchor_wires ? 1500 : 0);
+  const frictionForceN = frictionCoeff * effectiveNormalForceN + (fastening.has_anchor_wires ? 1500 : 0);
 
-  const fs_slide = dragForceN > 0 ? frictionForceN / dragForceN : 99.9;
-  const crit_denom_slide = 0.5 * AIR_DENSITY * (material.drag_coefficient * projArea + stock.friction_coefficient * material.lift_coefficient * topArea);
-  const crit_num_slide = stock.friction_coefficient * (totalWeightN + strapForceN) + (stock.fastening.has_anchor_wires ? 1500 : 0);
-  const crit_speed_slide = crit_denom_slide > 0 && crit_num_slide > 0 ? Math.sqrt(crit_num_slide / crit_denom_slide) : 0;
+  const raw_fs_slide = dragForceN > 0 ? frictionForceN / dragForceN : 99.9;
+  const fs_slide = Number.isFinite(raw_fs_slide) ? raw_fs_slide : 99.9;
+  const crit_denom_slide = 0.5 * AIR_DENSITY * (dragCoeff * projArea + frictionCoeff * liftCoeff * topArea);
+  const crit_num_slide = frictionCoeff * (totalWeightN + strapForceN) + (fastening.has_anchor_wires ? 1500 : 0);
+  const raw_crit_speed_slide = crit_denom_slide > 0 && crit_num_slide > 0 ? Math.sqrt(crit_num_slide / crit_denom_slide) : 0;
+  const crit_speed_slide = Number.isFinite(raw_crit_speed_slide) ? raw_crit_speed_slide : 0;
 
   let slideStatus: RiskLevel = 'NOT_EVALUATED';
   const slideCauses: string[] = [];
@@ -167,10 +180,12 @@ export function evaluateHazards(
   // ==========================================
   const centerOfPressureH = stackHeight / 2;
   const overturnMomentNm = dragForceN * centerOfPressureH;
-  const supportHalfWidth = Math.max(0.1, stock.support_geometry.support_width_m / 2);
+  const supportWidth = stock.support_geometry?.support_width_m || 0.8;
+  const supportHalfWidth = Math.max(0.1, supportWidth / 2);
   const resistMomentNm = Math.max(0, (totalWeightN - liftForceN) * supportHalfWidth) + strapResistMomentNm;
 
-  const fs_topple = overturnMomentNm > 0 ? resistMomentNm / overturnMomentNm : 99.9;
+  const raw_fs_topple = overturnMomentNm > 0 ? resistMomentNm / overturnMomentNm : 99.9;
+  const fs_topple = Number.isFinite(raw_fs_topple) ? raw_fs_topple : 99.9;
   const crit_speed_topple = overturnMomentNm > 0 ? effectiveGust * Math.sqrt(Math.max(0.01, fs_topple)) : 40.0;
 
   let toppleStatus: RiskLevel = 'NOT_EVALUATED';
@@ -183,19 +198,19 @@ export function evaluateHazards(
     toppleStatus = 'DANGER';
     if (lang === 'ko') {
       toppleCauses.push(`풍압 전도 모멘트(${overturnMomentNm.toFixed(0)} N·m)가 자중 및 고정 복원 모멘트(${resistMomentNm.toFixed(0)} N·m) 초과`);
-      if (stock.stack_tiers >= 3) {
-        toppleCauses.push(`적재 단수(${stock.stack_tiers}단, 높이 ${stackHeight.toFixed(1)}m)가 받침 폭(${stock.support_geometry.support_width_m}m) 대비 과도하게 높음`);
+      if ((stock.stack_tiers || 1) >= 3) {
+        toppleCauses.push(`적재 단수(${stock.stack_tiers}단, 높이 ${stackHeight.toFixed(1)}m)가 받침 폭(${supportWidth}m) 대비 과도하게 높음`);
         toppleActions.push(`적재 단수를 ${stock.stack_tiers}단에서 2단 이하로 분산 적치`);
       }
-      toppleActions.push(`받침목 지지 폭을 ${stock.support_geometry.support_width_m}m에서 ${(stock.support_geometry.support_width_m * 1.5).toFixed(2)}m 이상으로 확장`);
+      toppleActions.push(`받침목 지지 폭을 ${supportWidth}m에서 ${(supportWidth * 1.5).toFixed(2)}m 이상으로 확장`);
       toppleActions.push('상부 래칫 와이어 X자 교차 브레이싱 결속');
     } else {
       toppleCauses.push(`Overturning moment (${overturnMomentNm.toFixed(0)} N·m) exceeds restoring moment (${resistMomentNm.toFixed(0)} N·m)`);
-      if (stock.stack_tiers >= 3) {
-        toppleCauses.push(`Stack height (${stock.stack_tiers} tiers, ${stackHeight.toFixed(1)}m) is too tall for support base (${stock.support_geometry.support_width_m}m)`);
+      if ((stock.stack_tiers || 1) >= 3) {
+        toppleCauses.push(`Stack height (${stock.stack_tiers} tiers, ${stackHeight.toFixed(1)}m) is too tall for support base (${supportWidth}m)`);
         toppleActions.push(`Reduce stacking tiers from ${stock.stack_tiers} to 2 tiers or lower`);
       }
-      toppleActions.push(`Widen dunnage support from ${stock.support_geometry.support_width_m}m to ${(stock.support_geometry.support_width_m * 1.5).toFixed(2)}m+`);
+      toppleActions.push(`Widen dunnage support from ${supportWidth}m to ${(supportWidth * 1.5).toFixed(2)}m+`);
       toppleActions.push('Cross-brace top cargo with ratchet wire straps');
     }
   } else if (fs_topple < 1.3) {
@@ -322,7 +337,7 @@ export function evaluateHazards(
   const edgeDistRatio = Math.min(2.5, edgeDist / 2.0);
   const fs_fall = Number((edgeDistRatio * primaryFsMin * railProtectionFactor).toFixed(2));
 
-  if (location.floor.includes('1F') || location.elevation_m <= 1.5) {
+  if ((location.floor || '').includes('1F') || (location.elevation_m || 0) <= 1.5) {
     fallStatus = 'NOT_EVALUATED';
     if (lang === 'ko') {
       fallCauses.push('지상 평지 야적장으로 하부 지상 수직 낙하 위험성 평가 제외');
@@ -527,6 +542,11 @@ export function evaluateHazards(
     worstHazard = dangerList.sort((a, b) => a.safety_factor - b.safety_factor)[0];
   } else if (warningList.length > 0) {
     worstHazard = warningList.sort((a, b) => a.safety_factor - b.safety_factor)[0];
+  } else {
+    const evaluatedList = hazardList.filter((h) => h.status !== 'NOT_EVALUATED');
+    if (evaluatedList.length > 0) {
+      worstHazard = evaluatedList.sort((a, b) => a.safety_factor - b.safety_factor)[0];
+    }
   }
 
   let explanation = '';

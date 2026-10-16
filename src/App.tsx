@@ -40,7 +40,6 @@ import { IntegratedDbManagerModal } from './components/IntegratedDbManagerModal'
 import { RegionSelectorModal } from './components/RegionSelectorModal';
 import { MobileInspectionView } from './components/MobileInspectionView';
 import { SafetyAlarmBanner } from './components/SafetyAlarmBanner';
-import { VideoPlayerModal } from './components/VideoPlayerModal';
 
 import { notificationService } from './services/notificationService';
 import { Language, translations } from './services/i18n';
@@ -58,6 +57,8 @@ const STORAGE_KEY_LANG = 'safestack_lang_v2';
 export default function App() {
   const [lang, setLang] = useState<Language>(() => {
     try {
+      const paramLang = new URLSearchParams(window.location.search).get('lang');
+      if (paramLang === 'en' || paramLang === 'ko') return paramLang;
       const saved = localStorage.getItem(STORAGE_KEY_LANG);
       if (saved === 'ko' || saved === 'en') return saved;
     } catch (e) {
@@ -78,7 +79,9 @@ export default function App() {
     return DEFAULT_SITE_REGIONS;
   });
   const [currentRegion, setCurrentRegion] = useState<ConstructionSiteRegion>(DEFAULT_SITE_REGIONS[0]);
-  const [isRegionSelectorOpen, setIsRegionSelectorOpen] = useState(false);
+  const [isRegionSelectorOpen, setIsRegionSelectorOpen] = useState(() => {
+    return typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('modal') === 'region';
+  });
 
   // 현장 엔티티 및 적재구역 데이터 상태 (CRUD 및 영구 저장 지원)
   const [site, setSite] = useState<Site>(INITIAL_SITE);
@@ -169,20 +172,32 @@ export default function App() {
     loadKmaLiveWeather(lang, currentRegion.nx, currentRegion.ny);
   }, [lang, currentRegion, loadKmaLiveWeather]);
 
-  // 가상 풍속 시뮬레이터 (null이면 실제 기상청 관측값 적용)
-  const [simulationWindSpeed, setSimulationWindSpeed] = useState<number | null>(null);
+  // URL 파라미터 기반 상태 초기화 (데모 촬영 및 딥링크 지원)
+  const searchParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const [simulationWindSpeed, setSimulationWindSpeed] = useState<number | null>(() => {
+    const p = searchParams.get('simWind');
+    return p ? parseFloat(p) : null;
+  });
 
   // 모드 및 필터 상태
-  const [isMobileView, setIsMobileView] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() => searchParams.get('view') === 'mobile');
   const [selectedRiskFilter, setSelectedRiskFilter] = useState<RiskLevel | 'ALL'>('ALL');
   const [selectedFloorFilter, setSelectedFloorFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   // 모달 상태
-  const [selectedDetailLocation, setSelectedDetailLocation] = useState<Location | null>(null);
-  const [isAiIntakeOpen, setIsAiIntakeOpen] = useState(false);
-  const [isDbManagerOpen, setIsDbManagerOpen] = useState(false);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [selectedDetailLocation, setSelectedDetailLocation] = useState<Location | null>(() => {
+    if (searchParams.get('detail') === 'loc-1') {
+      return INITIAL_LOCATIONS[0];
+    }
+    return null;
+  });
+  const [isAiIntakeOpen, setIsAiIntakeOpen] = useState(() => {
+    return typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('modal') === 'ai';
+  });
+  const [isDbManagerOpen, setIsDbManagerOpen] = useState(() => {
+    return typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('modal') === 'db';
+  });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 안전 경보 (Safety Alarm) 상태
@@ -315,9 +330,14 @@ export default function App() {
         }
         if (searchQuery.trim() !== '') {
           const q = searchQuery.toLowerCase();
-          const matchLoc = item.location.name.toLowerCase().includes(q);
-          const matchMat = item.material?.name.toLowerCase().includes(q);
-          if (!matchLoc && !matchMat) return false;
+          const locName = (item.location.name || '').toLowerCase();
+          const matName = (item.material?.name || '').toLowerCase();
+          const locFloor = (item.location.floor || '').toLowerCase();
+          const locId = (item.location.id || '').toLowerCase();
+          const matId = (item.material?.id || '').toLowerCase();
+          if (!locName.includes(q) && !matName.includes(q) && !locFloor.includes(q) && !locId.includes(q) && !matId.includes(q)) {
+            return false;
+          }
         }
         return true;
       })
@@ -345,14 +365,45 @@ export default function App() {
   // AI 판독 결과 반영
   const handleConfirmIntake = (locationId: string, partialStock: Partial<Stock>) => {
     setStocks((prev) => {
-      const existing = prev[locationId];
-      if (!existing) return prev;
+      const existing = prev[locationId] || {
+        id: `stock-${locationId}-${Date.now()}`,
+        location_id: locationId,
+        material_id: 'mat-eps-insulation',
+        count: 20,
+        stack_tiers: 2,
+        orientation: 'FACE_TO_WIND',
+        bundle_state: 'TIGHTLY_STRAPPED',
+        fastening: {
+          has_ratchet_straps: false,
+          strap_tension_kn: 0.0,
+          has_anchor_wires: false,
+          wire_capacity_kn: 0.0,
+          has_wind_net: false,
+        },
+        contact_surface: 'CONCRETE_WOOD',
+        friction_coefficient: 0.4,
+        support_geometry: {
+          support_width_m: 0.8,
+          support_height_m: 0.1,
+          has_wheel_chocks: false,
+        },
+        updated_at: new Date().toLocaleTimeString(),
+        input_version: 1,
+      };
       return {
         ...prev,
         [locationId]: {
           ...existing,
           ...partialStock,
-          input_version: existing.input_version + 1,
+          fastening: {
+            ...existing.fastening,
+            ...(partialStock.fastening || {}),
+          },
+          support_geometry: {
+            ...existing.support_geometry,
+            ...(partialStock.support_geometry || {}),
+          },
+          input_version: (existing.input_version || 1) + 1,
           updated_at: new Date().toLocaleTimeString(),
         },
       };
@@ -454,11 +505,12 @@ export default function App() {
   const handleDeleteMaterial = (matId: string) => {
     const isUsed = Object.values(stocks).some((s) => s.material_id === matId && s.count > 0);
     if (isUsed) {
-      alert(
+      setToastMessage(
         lang === 'ko'
           ? '현재 적재구역에 활성 재고가 존재하는 자재는 삭제할 수 없습니다. 수량을 0으로 반출 처리하십시오.'
           : 'Cannot delete a material currently staged in active yards. Set its quantity to 0 first.'
       );
+      setTimeout(() => setToastMessage(null), 3500);
       return;
     }
     setMaterials((prev) => {
@@ -519,7 +571,6 @@ export default function App() {
         onOpenAiIntake={() => setIsAiIntakeOpen(true)}
         onOpenMaterialManager={() => setIsDbManagerOpen(true)}
         onOpenRegionSelector={() => setIsRegionSelectorOpen(true)}
-        onOpenVideoModal={() => setIsVideoModalOpen(true)}
         currentRegionName={lang === 'ko' ? currentRegion.nameKo : currentRegion.nameEn}
         onResetData={handleResetData}
         lastUpdated={lastUpdated}
@@ -745,13 +796,6 @@ export default function App() {
           onClose={() => setIsRegionSelectorOpen(false)}
         />
       )}
-
-      {/* 7. 모달: 공식 데모 영상 2종 플레이어 */}
-      <VideoPlayerModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-        lang={lang}
-      />
 
       {/* 푸터 */}
       <footer className="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-400">

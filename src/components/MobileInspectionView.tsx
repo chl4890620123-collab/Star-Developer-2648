@@ -69,9 +69,13 @@ export const MobileInspectionView: React.FC<MobileInspectionViewProps> = ({
   onQuickMitigation,
 }) => {
   const [filter, setFilter] = useState<RiskLevel | 'ALL'>('ALL');
-  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState(() => {
+    return typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qr') === 'open';
+  });
   const [mitigatedSuccessId, setMitigatedSuccessId] = useState<string | null>(null);
-  const [expandedLocId, setExpandedLocId] = useState<string | null>(null);
+  const [expandedLocId, setExpandedLocId] = useState<string | null>(() => {
+    return typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('expand') || null : null;
+  });
 
   // AI 현장 안전 비서 질의응답 상태
   const [aiQuestion, setAiQuestion] = useState('');
@@ -95,8 +99,9 @@ export const MobileInspectionView: React.FC<MobileInspectionViewProps> = ({
   });
 
   const filtered = evaluatedLocations.filter((item) => {
+    if (!item.stock || !item.material || !item.evalResult) return false;
     if (filter === 'ALL') return true;
-    return item.evalResult?.overallStatus === filter;
+    return item.evalResult.overallStatus === filter;
   });
 
   const dangerCount = evaluatedLocations.filter((i) => i.evalResult?.overallStatus === 'DANGER').length;

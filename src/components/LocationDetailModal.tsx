@@ -170,12 +170,12 @@ export const LocationDetailModal: React.FC<LocationDetailModalProps> = ({
   // ==========================================
   // [2] 현장 조치 시뮬레이션 상태
   // ==========================================
-  const [mitigationRatchet, setMitigationRatchet] = useState(stock.fastening.has_ratchet_straps);
-  const [mitigationRubberPad, setMitigationRubberPad] = useState(stock.friction_coefficient >= 0.6);
-  const [mitigationReduceTiers, setMitigationReduceTiers] = useState(stock.stack_tiers > 2);
-  const [mitigationWidenSupport, setMitigationWidenSupport] = useState(stock.support_geometry.support_width_m >= 1.2);
-  const [mitigationMoveInside, setMitigationMoveInside] = useState(location.edge_distance_m >= 2.5);
-  const [mitigationWindNet, setMitigationWindNet] = useState(stock.fastening.has_wind_net);
+  const [mitigationRatchet, setMitigationRatchet] = useState(stock.fastening?.has_ratchet_straps ?? false);
+  const [mitigationRubberPad, setMitigationRubberPad] = useState((stock.friction_coefficient ?? 0.4) >= 0.6);
+  const [mitigationReduceTiers, setMitigationReduceTiers] = useState((stock.stack_tiers ?? 1) > 2);
+  const [mitigationWidenSupport, setMitigationWidenSupport] = useState((stock.support_geometry?.support_width_m ?? 0.8) >= 1.2);
+  const [mitigationMoveInside, setMitigationMoveInside] = useState((location.edge_distance_m ?? 1.0) >= 2.5);
+  const [mitigationWindNet, setMitigationWindNet] = useState(stock.fastening?.has_wind_net ?? false);
 
   const [activeTab, setActiveTab] = useState<HazardType>('sliding');
   const [comparisonResult, setComparisonResult] = useState<{
@@ -189,21 +189,21 @@ export const LocationDetailModal: React.FC<LocationDetailModalProps> = ({
   const runMitigationSimulation = () => {
     const afterStock: Stock = {
       ...stock,
-      stack_tiers: mitigationReduceTiers ? Math.max(1, stock.stack_tiers - 1) : stock.stack_tiers,
-      bundle_state: mitigationWindNet ? 'TIGHTLY_STRAPPED' : stock.bundle_state,
-      friction_coefficient: mitigationRubberPad ? 0.65 : stock.friction_coefficient,
+      stack_tiers: mitigationReduceTiers ? Math.max(1, (stock.stack_tiers || 1) - 1) : (stock.stack_tiers || 1),
+      bundle_state: mitigationWindNet ? 'TIGHTLY_STRAPPED' : (stock.bundle_state || 'INDIVIDUAL_SHEETS'),
+      friction_coefficient: mitigationRubberPad ? 0.65 : (stock.friction_coefficient || 0.38),
       fastening: {
-        ...stock.fastening,
+        ...(stock.fastening || { has_ratchet_straps: false, strap_tension_kn: 0, has_anchor_wires: false, wire_capacity_kn: 0, has_wind_net: false }),
         has_ratchet_straps: mitigationRatchet,
-        strap_tension_kn: mitigationRatchet ? 2.5 : stock.fastening.strap_tension_kn,
+        strap_tension_kn: mitigationRatchet ? 2.5 : (stock.fastening?.strap_tension_kn || 0),
         has_wind_net: mitigationWindNet,
       },
       support_geometry: {
-        ...stock.support_geometry,
-        support_width_m: mitigationWidenSupport ? 1.2 : stock.support_geometry.support_width_m,
+        ...(stock.support_geometry || { support_width_m: 0.8, support_height_m: 0.1, has_wheel_chocks: false }),
+        support_width_m: mitigationWidenSupport ? 1.2 : (stock.support_geometry?.support_width_m || 0.8),
       },
       updated_at: new Date().toLocaleTimeString(),
-      input_version: stock.input_version + 1,
+      input_version: (stock.input_version || 1) + 1,
     };
 
     const afterLoc: Location = {

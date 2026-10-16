@@ -25,7 +25,7 @@ function prismPoints(x: number, y: number, z: number, width: number, depth: numb
     const dy = py - cy;
     const rx = cx + dx * Math.cos(radians) - dy * Math.sin(radians);
     const ry = cy + dx * Math.sin(radians) + dy * Math.cos(radians);
-    return [390 + (rx - ry) * 36, 190 + (rx + ry) * 17 - pz * 42];
+    return [390 + (rx - ry) * 30, 168 + (rx + ry) * 14 - pz * 42];
   };
 
   const a = project([x, y, z]);

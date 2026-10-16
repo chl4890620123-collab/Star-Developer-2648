@@ -9,6 +9,7 @@ import {
   WeatherCondition,
 } from '../types';
 import { evaluateHazards } from '../services/physicsEngine';
+import { StockpileModel3D } from './StockpileModel3D';
 import {
   X,
   CheckCircle2,
@@ -309,26 +310,14 @@ export const LocationDetailModal: React.FC<LocationDetailModalProps> = ({
             </div>
           </div>
 
-          {/* CFD 공기역학 3D 유동 시뮬레이션 다이어그램 (나노 바나나 생성 에셋) */}
-          <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
-            <img
-              src="/src/assets/images/aerodynamic_wind_tunnel_1792118019118.jpg"
-              alt="Aerodynamic CFD Simulation Diagram"
-              className="w-full h-44 sm:h-52 object-cover object-center opacity-85"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
-            <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <Wind className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span className="font-bold text-slate-100 text-xs sm:text-sm drop-shadow">
-                  {t.cfdDiagramTitle}
-                </span>
-              </div>
-              <span className="font-mono text-[11px] bg-slate-950/80 border border-slate-700 px-2 py-0.5 rounded text-amber-300 drop-shadow">
-                {activeLang === 'ko' ? '유효 순간풍속' : 'Effective Gust'}: {weather.gust_speed_ms} m/s
-              </span>
-            </div>
-          </div>
+          <StockpileModel3D
+            location={location}
+            material={material}
+            stock={stock}
+            weather={weather}
+            status={baseEval.overallStatus}
+            lang={activeLang}
+          />
 
           {/* 민감도 분석 하이라이트 박스 (지침서 5절) */}
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 text-xs flex items-start gap-3">

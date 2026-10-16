@@ -211,7 +211,7 @@ export const SafetyAlarmBanner: React.FC<SafetyAlarmBannerProps> = ({
                       <div className="font-semibold text-rose-300">{log.title}</div>
                       <div className="text-slate-400 text-[11px] mt-0.5">{log.body}</div>
                       <div className="text-[10px] text-amber-400/80 mt-1 font-mono">
-                        {lang === 'ko' ? '사유' : 'Reason'}: {log.reason}
+                        {lang === 'ko' ? '사유' : 'Reason'}: {log.triggerReason}
                       </div>
                     </div>
                     <span className="text-[10px] text-slate-500 font-mono shrink-0">

@@ -519,6 +519,7 @@ export default function App() {
         currentWindSpeed={activeWeather.wind_speed_ms}
         currentGustSpeed={activeWeather.gust_speed_ms}
         windThreshold={WIND_SPEED_THRESHOLD}
+        lang={lang}
         onDismiss={() => setIsAlarmDismissed(true)}
         onTestNotification={handleTestNotification}
       />
@@ -542,6 +543,7 @@ export default function App() {
             stocks={stocks}
             currentWeather={activeWeather}
             nextShiftWeather={nextShiftWeather}
+            lang={lang}
             onOpenAiIntake={() => setIsAiIntakeOpen(true)}
             onSelectLocationDetail={(loc) => setSelectedDetailLocation(loc)}
             onQuickMitigation={handleQuickMitigation}
@@ -664,23 +666,39 @@ export default function App() {
         <AiIntakeModal
           locations={locations}
           materials={materials}
+          lang={lang}
           onClose={() => setIsAiIntakeOpen(false)}
           onConfirmIntake={handleConfirmIntake}
         />
       )}
 
-      {/* 5. 모달: 통합 현장 적재구역(Location 높이) & 자재 규격(Material) CRUD DB 관리 */}
+      {/* 5. 모달: 통합 현장 적치구역 및 자재 규격 관리 설정 */}
       {isDbManagerOpen && (
         <IntegratedDbManagerModal
           locations={locations}
           materials={materials}
+          stocks={stocks}
           lang={lang}
           onClose={() => setIsDbManagerOpen(false)}
           onSaveLocation={handleSaveLocation}
           onDeleteLocation={handleDeleteLocation}
+          onSaveStock={handleUpdateStock}
+          onDeleteStock={(locId) => {
+            setStocks((prev) => {
+              const next = { ...prev };
+              delete next[locId];
+              return next;
+            });
+          }}
           onSaveMaterial={handleSaveMaterial}
           onDeleteMaterial={handleDeleteMaterial}
           onBatchUploadMaterials={handleBatchUploadMaterials}
+          onResetDatabase={handleResetData}
+          onImportDatabase={(data) => {
+            if (data.locations) setLocations(data.locations);
+            if (data.materials) setMaterials(data.materials);
+            if (data.stocks) setStocks(data.stocks);
+          }}
         />
       )}
 

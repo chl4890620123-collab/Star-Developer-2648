@@ -5,7 +5,24 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: 'serve-downloads',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && req.url.includes('SafeStack_Weather_Guard_Presentation.pptx')) {
+              res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+              res.setHeader('Content-Disposition', 'attachment; filename="SafeStack_Weather_Guard_Presentation.pptx"');
+            } else if (req.url && req.url.endsWith('.mp4')) {
+              res.setHeader('Content-Type', 'video/mp4');
+            }
+            next();
+          });
+        },
+      },
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

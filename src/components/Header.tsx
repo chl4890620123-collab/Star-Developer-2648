@@ -9,6 +9,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Globe,
+  Film,
 } from 'lucide-react';
 import { Site } from '../types';
 import { Language, translations } from '../services/i18n';
@@ -22,6 +23,7 @@ interface HeaderProps {
   onOpenAiIntake: () => void;
   onOpenMaterialManager: () => void;
   onOpenRegionSelector: () => void;
+  onOpenVideoModal?: () => void;
   currentRegionName: string;
   onResetData: () => void;
   lastUpdated: string;
@@ -37,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAiIntake,
   onOpenMaterialManager,
   onOpenRegionSelector,
+  onOpenVideoModal,
   currentRegionName,
   onResetData,
   lastUpdated,
@@ -129,6 +132,18 @@ export const Header: React.FC<HeaderProps> = ({
               <Camera className="w-4 h-4" />
               <span className="hidden sm:inline">{t.aiIntakeBtn}</span>
             </button>
+
+            {/* Official Demo Videos Button */}
+            {onOpenVideoModal && (
+              <button
+                onClick={onOpenVideoModal}
+                className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 rounded-lg text-xs font-bold shadow transition-all cursor-pointer"
+                title="공식 데모 시연 영상 2종 시청"
+              >
+                <Film className="w-4 h-4" />
+                <span className="hidden sm:inline">{lang === 'ko' ? '데모 영상' : 'Demo Videos'}</span>
+              </button>
+            )}
 
             {/* Material DB Button */}
             <button

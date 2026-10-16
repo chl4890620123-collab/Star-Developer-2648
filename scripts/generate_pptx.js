@@ -46,17 +46,30 @@ async function generatePresentation() {
   }
 
   // ==========================================
-  // SLIDE 1: Title Slide
+  // SLIDE 1: Title Slide (with Nano-Banana Hero Visual)
   // ==========================================
   const slide1 = pres.addSlide();
   slide1.background = { color: BG_DARK };
 
+  // Add Hero Nano-Banana Image on right half
+  const heroImgPath = path.resolve("src/assets/images/construction_safety_hero_1792117992203.jpg");
+  if (fs.existsSync(heroImgPath)) {
+    slide1.addImage({
+      path: heroImgPath,
+      x: 7.2,
+      y: 0.8,
+      w: 5.3,
+      h: 3.4,
+      rounding: true,
+    });
+  }
+
   slide1.addText("AUTONOMOUS AERODYNAMIC RISK MANAGEMENT", {
     x: 0.8,
-    y: 1.5,
-    w: 11.0,
-    h: 0.4,
-    fontSize: 14,
+    y: 0.8,
+    w: 6.2,
+    h: 0.35,
+    fontSize: 12,
     color: ACCENT_AMBER,
     bold: true,
     fontFace: "Arial",
@@ -64,10 +77,10 @@ async function generatePresentation() {
 
   slide1.addText("SafeStack Weather Guard", {
     x: 0.8,
-    y: 2.0,
-    w: 11.5,
+    y: 1.2,
+    w: 6.2,
     h: 1.2,
-    fontSize: 44,
+    fontSize: 36,
     color: TEXT_LIGHT,
     bold: true,
     fontFace: "Arial",
@@ -75,10 +88,10 @@ async function generatePresentation() {
 
   slide1.addText("Real-Time Construction Yard Aerodynamic Safety & Dynamic Weather Risk Intelligence Platform", {
     x: 0.8,
-    y: 3.3,
-    w: 11.0,
-    h: 0.6,
-    fontSize: 18,
+    y: 2.5,
+    w: 6.2,
+    h: 0.8,
+    fontSize: 15,
     color: TEXT_MUTED,
     fontFace: "Arial",
   });
@@ -86,57 +99,57 @@ async function generatePresentation() {
   // Feature summary cards on Title
   slide1.addShape(pres.ShapeType.roundRect, {
     x: 0.8,
-    y: 4.4,
+    y: 4.5,
     w: 3.6,
-    h: 1.8,
+    h: 2.1,
     fill: { color: CARD_DARK },
     line: { color: ACCENT_AMBER, width: 1 },
     rectRadius: 0.1,
   });
   slide1.addText("LIVE WEATHER PIPELINE\nKMA Ultra-Short-Term API\n24-Hour Predictive Gust Models\nGPS Multi-Hub Site Switching", {
     x: 1.0,
-    y: 4.6,
+    y: 4.7,
     w: 3.2,
-    h: 1.4,
-    fontSize: 12,
+    h: 1.7,
+    fontSize: 11,
     color: TEXT_LIGHT,
     fontFace: "Arial",
   });
 
   slide1.addShape(pres.ShapeType.roundRect, {
     x: 4.7,
-    y: 4.4,
+    y: 4.5,
     w: 3.6,
-    h: 1.8,
+    h: 2.1,
     fill: { color: CARD_DARK },
     line: { color: ACCENT_CYAN, width: 1 },
     rectRadius: 0.1,
   });
   slide1.addText("5 PHYSICS RISK ENGINES\nNASA Aerodynamic Drag & Lift\nSliding, Toppling & Uplift FS\nDual-Height Edge Fall Protection", {
     x: 4.9,
-    y: 4.6,
+    y: 4.7,
     w: 3.2,
-    h: 1.4,
-    fontSize: 12,
+    h: 1.7,
+    fontSize: 11,
     color: TEXT_LIGHT,
     fontFace: "Arial",
   });
 
   slide1.addShape(pres.ShapeType.roundRect, {
     x: 8.6,
-    y: 4.4,
-    w: 3.6,
-    h: 1.8,
+    y: 4.5,
+    w: 3.9,
+    h: 2.1,
     fill: { color: CARD_DARK },
     line: { color: ACCENT_EMERALD, width: 1 },
     rectRadius: 0.1,
   });
   slide1.addText("MOBILE PATROL & AI\nGemini 3.8 Flash Vision Intake\nSub-Second Camera QR Decoding\n5-Entry Safety Audit Trail", {
     x: 8.8,
-    y: 4.6,
-    w: 3.2,
-    h: 1.4,
-    fontSize: 12,
+    y: 4.7,
+    w: 3.5,
+    h: 1.7,
+    fontSize: 11,
     color: TEXT_LIGHT,
     fontFace: "Arial",
   });
@@ -424,32 +437,28 @@ async function generatePresentation() {
     bold: true,
   });
 
-  slide5.addShape(pres.ShapeType.roundRect, {
-    x: 0.8,
-    y: 1.8,
-    w: 5.7,
-    h: 4.8,
-    fill: { color: CARD_DARK },
-    line: { color: ACCENT_CYAN, width: 1 },
-    rectRadius: 0.1,
-  });
-  slide5.addText("CFD SIMULATION ASSETS INTEGRATION", {
-    x: 1.0,
-    y: 2.0,
-    w: 5.3,
-    h: 0.4,
-    fontSize: 14,
-    color: ACCENT_CYAN,
-    bold: true,
-  });
-  slide5.addText("• High-fidelity 3D flow streamlines showing stagnation zones on windward faces.\n• Recirculating turbulent wake eddies formed behind stacked cargo.\n• Edge detachment zones illustrating localized negative pressure spikes.\n• Instant calculation of boundary layer separation points across pallets.", {
-    x: 1.0,
-    y: 2.6,
-    w: 5.3,
-    h: 3.6,
-    fontSize: 12,
-    color: TEXT_LIGHT,
-  });
+  // Add 3D CFD Nano-Banana Image on left
+  const cfdImgPath = path.resolve("src/assets/images/aerodynamic_wind_tunnel_1792118019118.jpg");
+  if (fs.existsSync(cfdImgPath)) {
+    slide5.addImage({
+      path: cfdImgPath,
+      x: 0.8,
+      y: 1.8,
+      w: 5.7,
+      h: 4.8,
+      rounding: true,
+    });
+  } else {
+    slide5.addShape(pres.ShapeType.roundRect, {
+      x: 0.8,
+      y: 1.8,
+      w: 5.7,
+      h: 4.8,
+      fill: { color: CARD_DARK },
+      line: { color: ACCENT_CYAN, width: 1 },
+      rectRadius: 0.1,
+    });
+  }
 
   slide5.addShape(pres.ShapeType.roundRect, {
     x: 6.8,
@@ -652,32 +661,28 @@ async function generatePresentation() {
     bold: true,
   });
 
-  slide8.addShape(pres.ShapeType.roundRect, {
-    x: 0.8,
-    y: 1.8,
-    w: 5.7,
-    h: 4.8,
-    fill: { color: CARD_DARK },
-    line: { color: ACCENT_AMBER, width: 1 },
-    rectRadius: 0.1,
-  });
-  slide8.addText("1-HANDED SMARTPHONE OPTIMIZATION", {
-    x: 1.0,
-    y: 2.0,
-    w: 5.3,
-    h: 0.4,
-    fontSize: 14,
-    color: ACCENT_AMBER,
-    bold: true,
-  });
-  slide8.addText("• High outdoor contrast, large touch targets, zero UI overflow.\n• Plain-Language Dimensions: Replaced raw LWH with '2.0m width · 1.0m length (10cm thick)'.\n• Tap-to-Expand Accordion: Tapping any card immediately expands its 5 individual physics metrics in-place.\n• 1-Touch Ratchet Toggle: Instant color feedback (amber unstrapped <-> emerald 3.5kN secured) with instant recalculation.", {
-    x: 1.0,
-    y: 2.6,
-    w: 5.3,
-    h: 3.6,
-    fontSize: 12,
-    color: TEXT_LIGHT,
-  });
+  // Add Mobile Patrol Nano-Banana Image on left
+  const mobileImgPath = path.resolve("src/assets/images/nanobanana_mobile_patrol_1792124316883.jpg");
+  if (fs.existsSync(mobileImgPath)) {
+    slide8.addImage({
+      path: mobileImgPath,
+      x: 0.8,
+      y: 1.8,
+      w: 5.7,
+      h: 4.8,
+      rounding: true,
+    });
+  } else {
+    slide8.addShape(pres.ShapeType.roundRect, {
+      x: 0.8,
+      y: 1.8,
+      w: 5.7,
+      h: 4.8,
+      fill: { color: CARD_DARK },
+      line: { color: ACCENT_AMBER, width: 1 },
+      rectRadius: 0.1,
+    });
+  }
 
   slide8.addShape(pres.ShapeType.roundRect, {
     x: 6.8,
@@ -899,32 +904,28 @@ async function generatePresentation() {
     bold: true,
   });
 
-  slide11.addShape(pres.ShapeType.roundRect, {
-    x: 0.8,
-    y: 1.8,
-    w: 5.7,
-    h: 4.8,
-    fill: { color: CARD_DARK },
-    line: { color: ACCENT_AMBER, width: 1 },
-    rectRadius: 0.1,
-  });
-  slide11.addText("ACTIONABLE STRUCTURAL LEVERS", {
-    x: 1.0,
-    y: 2.0,
-    w: 5.3,
-    h: 0.4,
-    fontSize: 14,
-    color: ACCENT_AMBER,
-    bold: true,
-  });
-  slide11.addText("1. Fasten 2.5kN Ratchet Straps (래칫 벨트 체결)\n2. Install Rubber Anti-Slip Pads (고무 패드 시공, μ = 0.65)\n3. Reduce Cargo Stacking by 1 Tier (적재단수 감축)\n4. Widen Dunnage Base to 1.2m (받침목 지지폭 확장)\n5. Move Cargo >= 2.8m Inward from Slab Edge (단부 이격)\n6. Install Windbreak Netting (방풍망 결속)", {
-    x: 1.0,
-    y: 2.6,
-    w: 5.3,
-    h: 3.6,
-    fontSize: 12,
-    color: TEXT_LIGHT,
-  });
+  // Add Mitigation Engineering Nano-Banana Image on left
+  const mitImgPath = path.resolve("src/assets/images/nanobanana_mitigation_engineering_1792124316759.jpg");
+  if (fs.existsSync(mitImgPath)) {
+    slide11.addImage({
+      path: mitImgPath,
+      x: 0.8,
+      y: 1.8,
+      w: 5.7,
+      h: 4.8,
+      rounding: true,
+    });
+  } else {
+    slide11.addShape(pres.ShapeType.roundRect, {
+      x: 0.8,
+      y: 1.8,
+      w: 5.7,
+      h: 4.8,
+      fill: { color: CARD_DARK },
+      line: { color: ACCENT_AMBER, width: 1 },
+      rectRadius: 0.1,
+    });
+  }
 
   slide11.addShape(pres.ShapeType.roundRect, {
     x: 6.8,

@@ -40,13 +40,14 @@ import { IntegratedDbManagerModal } from './components/IntegratedDbManagerModal'
 import { RegionSelectorModal } from './components/RegionSelectorModal';
 import { MobileInspectionView } from './components/MobileInspectionView';
 import { SafetyAlarmBanner } from './components/SafetyAlarmBanner';
+import { VideoPlayerModal } from './components/VideoPlayerModal';
 
 import { notificationService } from './services/notificationService';
 import { Language, translations } from './services/i18n';
 import { fetchLiveKmaWeather } from './services/kmaWeatherService';
 import { DEFAULT_SITE_REGIONS, ConstructionSiteRegion } from './services/geoService';
 
-import { Filter, Search, AlertTriangle, Check } from 'lucide-react';
+import { Filter, Search, AlertTriangle, Check, Download } from 'lucide-react';
 
 const STORAGE_KEY_LOCATIONS = 'safestack_locations_v2';
 const STORAGE_KEY_MATERIALS = 'safestack_materials_v2';
@@ -181,6 +182,7 @@ export default function App() {
   const [selectedDetailLocation, setSelectedDetailLocation] = useState<Location | null>(null);
   const [isAiIntakeOpen, setIsAiIntakeOpen] = useState(false);
   const [isDbManagerOpen, setIsDbManagerOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 안전 경보 (Safety Alarm) 상태
@@ -517,6 +519,7 @@ export default function App() {
         onOpenAiIntake={() => setIsAiIntakeOpen(true)}
         onOpenMaterialManager={() => setIsDbManagerOpen(true)}
         onOpenRegionSelector={() => setIsRegionSelectorOpen(true)}
+        onOpenVideoModal={() => setIsVideoModalOpen(true)}
         currentRegionName={lang === 'ko' ? currentRegion.nameKo : currentRegion.nameEn}
         onResetData={handleResetData}
         lastUpdated={lastUpdated}
@@ -742,6 +745,13 @@ export default function App() {
           onClose={() => setIsRegionSelectorOpen(false)}
         />
       )}
+
+      {/* 7. 모달: 공식 데모 영상 2종 플레이어 */}
+      <VideoPlayerModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        lang={lang}
+      />
 
       {/* 푸터 */}
       <footer className="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-400">

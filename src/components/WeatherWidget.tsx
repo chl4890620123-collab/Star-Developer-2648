@@ -7,6 +7,8 @@ import {
   AlertTriangle,
   CloudRain,
   RotateCcw,
+  Sliders,
+  Sparkles,
 } from 'lucide-react';
 import { WeatherCondition } from '../types';
 import { Language, translations } from '../services/i18n';
@@ -29,6 +31,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   lang,
 }) => {
   const [showHourly, setShowHourly] = useState(false);
+  const [showCustomSlider, setShowCustomSlider] = useState(false);
   const t = translations[lang];
 
   // 시뮬레이션 적용 여부에 따른 표시 풍속
@@ -42,62 +45,101 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   // 전체 예보 중 최대 풍속 시점 탐색 (지침서: 두 번째 칸 이후의 위험 상승도 별도 안내)
   const peakForecast = [...hourlyForecast].sort((a, b) => b.wind_speed_ms - a.wind_speed_ms)[0];
 
+  const presets = [
+    { label: t.simNormal, value: 6.0, color: 'text-slate-200 border-slate-700 bg-slate-800' },
+    { label: t.simAdvisory, value: 13.5, color: 'text-amber-300 border-amber-500/50 bg-amber-500/20' },
+    { label: t.simStorm, value: 21.0, color: 'text-rose-300 border-rose-500/50 bg-rose-500/20' },
+  ];
+
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-lg space-y-4 keep-all no-overflow">
+    <div id="weather-widget" className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4 keep-all no-overflow scroll-mt-20">
       {/* 위젯 타이틀 & 시뮬레이터 바 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-800 pb-3">
         <div className="flex items-center space-x-2.5 min-w-0">
-          <div className="p-1.5 bg-sky-500/10 rounded-lg text-sky-400 shrink-0">
+          <div className="p-2 bg-sky-500/15 rounded-xl text-sky-400 shrink-0">
             <Wind className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2 truncate">
+            <h2 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2 truncate">
               <span>{t.weatherTitle}</span>
             </h2>
             <div className="text-xs text-slate-400 truncate">{t.weatherSubtitle}</div>
           </div>
         </div>
 
-        {/* 가상 풍속 시뮬레이터 컨트롤 */}
-        <div className="flex items-center gap-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-xs shrink-0 self-start sm:self-auto">
-          <span className="text-slate-400 font-medium whitespace-nowrap">{t.virtualSimLabel}:</span>
-          {simulationWindSpeed !== null ? (
-            <div className="flex items-center gap-1.5">
-              <span className="font-mono font-bold text-amber-400 whitespace-nowrap">
-                {simulationWindSpeed} m/s
-              </span>
+        {/* 가상 풍속 시뮬레이터 컨트롤 (프리셋 상시 표시 및 원클릭 전환) */}
+        <div className="flex items-center gap-1.5 bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-xs shrink-0 flex-wrap">
+          <span className="text-slate-400 font-medium whitespace-nowrap flex items-center gap-1">
+            <Sliders className="w-3.5 h-3.5 text-amber-400" />
+            <span>{t.virtualSimLabel}:</span>
+          </span>
+
+          {presets.map((preset) => {
+            const isSelected = simulationWindSpeed === preset.value;
+            return (
               <button
-                onClick={() => onSetSimulationWindSpeed(null)}
-                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs flex items-center gap-1 whitespace-nowrap"
+                key={preset.value}
+                onClick={() => onSetSimulationWindSpeed(preset.value)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all active:scale-95 whitespace-nowrap cursor-pointer ${
+                  isSelected
+                    ? `${preset.color} ring-2 ring-amber-400/80 font-bold shadow-md`
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                }`}
               >
-                <RotateCcw className="w-3 h-3" />
-                <span>{t.simReset}</span>
+                {preset.label}
               </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 flex-wrap">
-              <button
-                onClick={() => onSetSimulationWindSpeed(6.0)}
-                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded hover:text-white whitespace-nowrap"
-              >
-                {t.simNormal}
-              </button>
-              <button
-                onClick={() => onSetSimulationWindSpeed(13.5)}
-                className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded hover:bg-amber-500/30 font-medium whitespace-nowrap"
-              >
-                {t.simAdvisory}
-              </button>
-              <button
-                onClick={() => onSetSimulationWindSpeed(21.0)}
-                className="px-2 py-0.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded hover:bg-rose-500/30 font-medium whitespace-nowrap"
-              >
-                {t.simStorm}
-              </button>
-            </div>
+            );
+          })}
+
+          <button
+            onClick={() => setShowCustomSlider((prev) => !prev)}
+            className={`px-2 py-1 rounded-lg text-xs font-medium border transition-colors whitespace-nowrap cursor-pointer ${
+              showCustomSlider
+                ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {lang === 'ko' ? '직접조정' : 'Custom'}
+          </button>
+
+          {simulationWindSpeed !== null && (
+            <button
+              onClick={() => onSetSimulationWindSpeed(null)}
+              className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 rounded-lg text-xs font-semibold flex items-center gap-1 whitespace-nowrap transition-colors cursor-pointer"
+              title={lang === 'ko' ? '기상청 실황 관측치로 복귀' : 'Restore live observed weather'}
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>{t.simReset}</span>
+            </button>
           )}
         </div>
       </div>
+
+      {/* 사용자 정의 풍속 슬라이더 (펼쳐졌을 때) */}
+      {showCustomSlider && (
+        <div className="bg-slate-950 p-3 rounded-xl border border-sky-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-300 font-semibold whitespace-nowrap">
+              {lang === 'ko' ? '강풍 세기 미세 조정:' : 'Adjust Wind Speed:'}
+            </span>
+            <input
+              type="range"
+              min="2"
+              max="35"
+              step="0.5"
+              value={activeCurrentWind}
+              onChange={(e) => onSetSimulationWindSpeed(parseFloat(e.target.value))}
+              className="w-48 sm:w-64 accent-amber-400 cursor-pointer"
+            />
+            <span className="font-mono font-bold text-amber-300 text-sm whitespace-nowrap">
+              {activeCurrentWind} m/s
+            </span>
+          </div>
+          <span className="text-[11px] text-slate-400">
+            {lang === 'ko' ? '슬라이더를 움직이면 전체 적재구역의 안전율이 즉시 재계산됩니다.' : 'Adjusting scales safety factors across all staging yards in real time.'}
+          </span>
+        </div>
+      )}
 
       {/* [지침서 2절 필수 구현] 2-Column Primary Cards: 현재 관측 vs 다음 변경 예보 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -210,7 +252,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
       {/* [지침서 2절 준수] 예보 전체 검사 알림: 두 번째 칸 이후의 위험 상승 안내 */}
       {peakForecast && peakForecast.wind_speed_ms > nextShiftWeather.wind_speed_ms && (
-        <div className="bg-rose-950/30 border border-rose-500/40 rounded-lg p-3 text-xs text-rose-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="bg-rose-950/30 border border-rose-500/40 rounded-xl p-3 text-xs text-rose-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
             <span className="leading-relaxed">
@@ -223,7 +265,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
           </div>
           <button
             onClick={() => setShowHourly(!showHourly)}
-            className="text-xs font-semibold text-rose-400 hover:text-rose-200 whitespace-nowrap underline shrink-0 self-end sm:self-auto"
+            className="text-xs font-semibold text-rose-400 hover:text-rose-200 whitespace-nowrap underline shrink-0 self-end sm:self-auto cursor-pointer"
           >
             {showHourly ? (lang === 'ko' ? '접기' : 'Hide') : t.hourlyTimelineBtn}
           </button>
@@ -232,13 +274,18 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 
       {/* 24시간 타임라인 드롭다운/토글 */}
       {showHourly && (
-        <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 mt-2">
-          <div className="text-xs font-semibold text-slate-300 mb-2">{t.hourlyTimelineTitle}</div>
+        <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 mt-2 animate-in fade-in">
+          <div className="text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
+            <span>{t.hourlyTimelineTitle}</span>
+            <span className="text-[11px] text-slate-500 font-normal">
+              {lang === 'ko' ? '24시간 시간별 기상청 단기예보 추세' : 'KMA 24h short-term forecast trend'}
+            </span>
+          </div>
           <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
             {hourlyForecast.map((h, i) => (
               <div
                 key={i}
-                className={`p-2 rounded border text-center text-xs ${
+                className={`p-2 rounded-lg border text-center text-xs ${
                   h.wind_speed_ms >= 14
                     ? 'bg-rose-950/40 border-rose-500/50 text-rose-300'
                     : h.wind_speed_ms >= 10

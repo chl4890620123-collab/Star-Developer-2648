@@ -46,7 +46,7 @@ import { Language, translations } from './services/i18n';
 import { fetchLiveKmaWeather } from './services/kmaWeatherService';
 import { DEFAULT_SITE_REGIONS, ConstructionSiteRegion } from './services/geoService';
 
-import { Filter, Search, AlertTriangle } from 'lucide-react';
+import { Filter, Search, AlertTriangle, Check } from 'lucide-react';
 
 const STORAGE_KEY_LOCATIONS = 'safestack_locations_v2';
 const STORAGE_KEY_MATERIALS = 'safestack_materials_v2';
@@ -181,6 +181,7 @@ export default function App() {
   const [selectedDetailLocation, setSelectedDetailLocation] = useState<Location | null>(null);
   const [isAiIntakeOpen, setIsAiIntakeOpen] = useState(false);
   const [isDbManagerOpen, setIsDbManagerOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 안전 경보 (Safety Alarm) 상태
   const WIND_SPEED_THRESHOLD = 14.0; // 풍속 기준치 (m/s)
@@ -357,25 +358,34 @@ export default function App() {
     setLastUpdated(new Date().toLocaleTimeString());
   };
 
-  // 모바일 퀵 결속 조치
+  // 모바일 퀵 결속 조치 (래칫 밴딩 체결 및 즉각 역학 재계산)
   const handleQuickMitigation = (locationId: string) => {
     setStocks((prev) => {
       const existing = prev[locationId];
       if (!existing) return prev;
+      const isCurrentlyStrapped = existing.fastening?.has_ratchet_straps;
+      const nextStrapped = !isCurrentlyStrapped;
       return {
         ...prev,
         [locationId]: {
           ...existing,
+          bundle_state: nextStrapped ? 'TIGHTLY_STRAPPED' : existing.bundle_state,
           fastening: {
             ...existing.fastening,
-            has_ratchet_straps: true,
-            strap_tension_kn: 2.5,
+            has_ratchet_straps: nextStrapped,
+            strap_tension_kn: nextStrapped ? 3.5 : 0.0,
           },
           input_version: existing.input_version + 1,
           updated_at: new Date().toLocaleTimeString(),
         },
       };
     });
+    setToastMessage(
+      lang === 'ko'
+        ? '래칫 밴딩 체결 상태 변경 완료! 안전율이 즉시 재계산되었습니다.'
+        : 'Ratchet strap fastening updated! Safety factor recalculated.'
+    );
+    setTimeout(() => setToastMessage(null), 3000);
     setLastUpdated(new Date().toLocaleTimeString());
   };
 
@@ -491,6 +501,8 @@ export default function App() {
     setLocations(INITIAL_LOCATIONS);
     setSimulationWindSpeed(null);
     loadKmaLiveWeather(lang, currentRegion.nx, currentRegion.ny);
+    setToastMessage(lang === 'ko' ? '현장 표준 데이터셋으로 재설정 및 역학 재계산 완료!' : 'Reset to baseline and re-calculated!');
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   return (
@@ -526,14 +538,31 @@ export default function App() {
 
       {/* 2. 본문 메인 레이아웃 */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* 나노 바나나 생성 시각화 에셋 기반 히어로 배너 */}
-        <HeroBanner
-          lang={lang}
-          currentWindSpeed={activeWeather.wind_speed_ms}
-          gustSpeed={activeWeather.gust_speed_ms}
-          dangerCount={kpiStats.dangerCount}
-          isLiveKma={isLiveKma}
-        />
+        {/* 나노 바나나 생성 시각화 에셋 기반 히어로 배너 (인터랙티브 바로가기 연동 - PC 관제 모드 전용) */}
+        {!isMobileView && (
+          <HeroBanner
+            lang={lang}
+            currentWindSpeed={activeWeather.wind_speed_ms}
+            gustSpeed={activeWeather.gust_speed_ms}
+            dangerCount={kpiStats.dangerCount}
+            isLiveKma={isLiveKma}
+            onSelectDangerFilter={() => {
+              setSelectedRiskFilter('DANGER');
+              document.getElementById('yard-grid')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            onOpenAiIntake={() => setIsAiIntakeOpen(true)}
+            onScrollToWeather={() => {
+              document.getElementById('weather-widget')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            onOpenMitigationModal={() => {
+              const danger = locations.find((l) => stocks[l.id]?.fastening?.has_ratchet_straps === false) || locations[0];
+              setSelectedDetailLocation(danger);
+            }}
+            onOpenDetailModal={() => {
+              setSelectedDetailLocation(locations[0]);
+            }}
+          />
+        )}
 
         {/* 모바일 뷰 전용 레이아웃 분기 */}
         {isMobileView ? (
@@ -609,7 +638,7 @@ export default function App() {
 
             {/* 적재구역 카드 그리드 */}
             {filteredAssessments.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              <div id="yard-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 scroll-mt-20">
                 {filteredAssessments.map(({ location, stock, material, evaluation }) => {
                   if (!stock || !material || !evaluation) return null;
                   return (
@@ -721,6 +750,14 @@ export default function App() {
           <span className="text-slate-400 text-[11px]">{t.footerSubtext}</span>
         </div>
       </footer>
+
+      {/* 플로팅 알림 토스트 (원클릭 조치 및 초기화 피드백) */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-950/95 border border-emerald-500/60 text-emerald-200 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-bottom-3 backdrop-blur-md">
+          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

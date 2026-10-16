@@ -122,7 +122,8 @@ export const LocationCard: React.FC<LocationCardProps> = ({
 
   return (
     <div
-      className={`rounded-xl border p-4 sm:p-5 shadow-lg transition-all duration-200 flex flex-col justify-between keep-all no-overflow min-h-[380px] ${borderClass}`}
+      onClick={onOpenDetail}
+      className={`rounded-2xl border p-4 sm:p-5 shadow-lg transition-all duration-200 flex flex-col justify-between keep-all no-overflow min-h-[380px] cursor-pointer hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] group ${borderClass}`}
     >
       <div className="space-y-3">
         {/* 상단 헤더: 구역명 및 뱃지 */}
@@ -246,12 +247,15 @@ export const LocationCard: React.FC<LocationCardProps> = ({
         </div>
 
         <button
-          onClick={onOpenDetail}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium transition-colors border border-slate-700 hover:text-white whitespace-nowrap shrink-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenDetail();
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-200 rounded-lg font-bold transition-all border border-slate-700 whitespace-nowrap shrink-0 group-hover:border-amber-400 group-hover:bg-amber-500/20 group-hover:text-amber-300"
         >
           <Wrench className="w-3.5 h-3.5 text-amber-400" />
           <span>{t.viewDetailAction}</span>
-          <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+          <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
     </div>

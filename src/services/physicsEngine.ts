@@ -101,12 +101,12 @@ export function evaluateHazards(
   const q_gust = 0.5 * AIR_DENSITY * Math.pow(effectiveGust, 2);
   const dragForceN = q_gust * material.drag_coefficient * projArea;
   const liftForceN = q_gust * material.lift_coefficient * topArea;
-  const effectiveNormalForceN = Math.max(0, totalWeightN - liftForceN);
+  const effectiveNormalForceN = Math.max(0, totalWeightN + strapForceN - liftForceN);
   const frictionForceN = stock.friction_coefficient * effectiveNormalForceN + (stock.fastening.has_anchor_wires ? 1500 : 0);
 
   const fs_slide = dragForceN > 0 ? frictionForceN / dragForceN : 99.9;
   const crit_denom_slide = 0.5 * AIR_DENSITY * (material.drag_coefficient * projArea + stock.friction_coefficient * material.lift_coefficient * topArea);
-  const crit_num_slide = stock.friction_coefficient * totalWeightN + (stock.fastening.has_anchor_wires ? 1500 : 0);
+  const crit_num_slide = stock.friction_coefficient * (totalWeightN + strapForceN) + (stock.fastening.has_anchor_wires ? 1500 : 0);
   const crit_speed_slide = crit_denom_slide > 0 && crit_num_slide > 0 ? Math.sqrt(crit_num_slide / crit_denom_slide) : 0;
 
   let slideStatus: RiskLevel = 'NOT_EVALUATED';
@@ -435,12 +435,16 @@ export function evaluateHazards(
   const crit_speed_scatter = Math.sqrt(Math.max(1, (2 * sigma * GRAVITY) / (AIR_DENSITY * material.drag_coefficient)));
   const fs_scatter = effectiveGust > 0 ? crit_speed_scatter / effectiveGust : 99;
 
-  if (!material.is_loose_sheet && stock.bundle_state === 'TIGHTLY_STRAPPED') {
-    scatterStatus = 'NOT_EVALUATED';
+  if (
+    (!material.is_loose_sheet && stock.bundle_state === 'TIGHTLY_STRAPPED') ||
+    stock.fastening.has_ratchet_straps ||
+    stock.fastening.has_wind_net
+  ) {
+    scatterStatus = 'NEED_CHECK';
     if (lang === 'ko') {
-      scatterCauses.push('고강도 밴딩 결속 및 중량 자재로 낱장 비산 위험 미발생 조건');
+      scatterCauses.push('고강도 래칫 밴딩 결속 및 방호망으로 낱장 비산 위험 방호 조치 완료 (안전율 충족)');
     } else {
-      scatterCauses.push('Heavy bundled cargo with tight banding, no loose sheet scattering potential');
+      scatterCauses.push('Ratchet straps and netting securely fastened; loose sheet scattering mitigated');
     }
   } else if (stock.bundle_state === 'INDIVIDUAL_SHEETS' || stock.bundle_state === 'LOOSE_BUNDLE') {
     if (effectiveGust >= crit_speed_scatter) {

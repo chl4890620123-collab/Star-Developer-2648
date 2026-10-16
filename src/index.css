@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  background-color: #020617;
+  color: #f8fafc;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 방어형 레이아웃 헬퍼 */
+.keep-all {
+  word-break: keep-all;
+}
+
+.no-overflow {
+  min-width: 0;
+  max-width: 100%;
+}

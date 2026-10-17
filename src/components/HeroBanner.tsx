@@ -17,7 +17,6 @@ interface HeroBannerProps {
   currentWindSpeed: number;
   gustSpeed: number;
   dangerCount: number;
-  isLiveKma: boolean;
   onSelectDangerFilter?: () => void;
   onOpenAiIntake?: () => void;
   onScrollToWeather?: () => void;
@@ -30,7 +29,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   currentWindSpeed,
   gustSpeed,
   dangerCount,
-  isLiveKma,
   onSelectDangerFilter,
   onOpenAiIntake,
   onScrollToWeather,
@@ -109,11 +107,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700/80 backdrop-blur-md">
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
             <span>
-              {isLiveKma
-                ? lang === 'ko'
-                  ? '기상청 API 실시간 연동'
-                  : 'KMA Live API Sync'
-                : 'KMA AWS #408'}
+              {lang === 'ko' ? '샘플 기상 데이터' : 'Sample Weather Data'}
             </span>
           </span>
         </div>

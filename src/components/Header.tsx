@@ -25,7 +25,6 @@ interface HeaderProps {
   currentRegionName: string;
   onResetData: () => void;
   lastUpdated: string;
-  isLiveKma: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -40,7 +39,6 @@ export const Header: React.FC<HeaderProps> = ({
   currentRegionName,
   onResetData,
   lastUpdated,
-  isLiveKma,
 }) => {
   const t = translations[lang];
 
@@ -154,14 +152,8 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Sub Header Notice Bar */}
       <div className="bg-slate-950/80 border-t border-slate-800/80 px-4 py-1.5 text-xs text-slate-400 flex flex-wrap items-center justify-between">
         <div className="flex items-center space-x-2">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>
-            {isLiveKma
-              ? lang === 'ko'
-                ? '기상청 API 실시간 연동 정상 (VilageFcstInfoService_2.0)'
-                : 'KMA API Live Connected (VilageFcstInfoService_2.0)'
-              : t.stationConnecting}
-          </span>
+          <span className="inline-block w-2 h-2 rounded-full bg-amber-400"></span>
+          <span>{lang === 'ko' ? '샘플 기상 데이터 · 실시간 연결 없음' : 'Sample weather · no live connection'}</span>
           <span className="text-slate-600">·</span>
           <span>
             {t.lastUpdated}: {lastUpdated}

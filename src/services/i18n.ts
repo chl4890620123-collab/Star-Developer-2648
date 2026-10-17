@@ -18,7 +18,7 @@ export const translations = {
     aiIntakeBtn: '입고 사진 AI 판독',
     materialDbBtn: '적치구역/자재 설정',
     resetTooltip: '데이터 초기화 및 재계산',
-    stationConnecting: '기상청 서울 마포 AWS #408 관측 연동 중',
+    stationConnecting: '샘플 기상 데이터 사용 중',
     lastUpdated: '갱신 시각',
     windAdvisoryNotice: '16:00 강풍주의보 예보 발효 예정 (순간최대 18.6m/s 돌풍)',
 
@@ -47,8 +47,8 @@ export const translations = {
     noGreenGuaranteeNotice: '[안전 지침 제7조 준수] 본 시스템은 어떠한 경우에도 무결한 \'녹색 안전 보증\'을 표시하지 않습니다. 경고가 없는 구역(FS ≥ 1.3)이라도 돌풍 와류, 받침목 이완 등의 미측정 오차가 존재할 수 있으므로 현장 순찰 및 물리 상태 점검이 의무화되어 있습니다.',
 
     // Weather Widget
-    weatherTitle: '기상청 실시간 관측 및 풍속 변동 예보',
-    weatherSubtitle: '실시간 AWS 지표 풍속 (기준고도 10m)',
+    weatherTitle: '기상 샘플 데이터 및 풍속 시뮬레이션',
+    weatherSubtitle: '샘플값을 기준으로 풍속 위험도를 시험합니다',
     virtualSimLabel: '가상 풍속 시험',
     simNormal: '평상(6m/s)',
     simAdvisory: '강풍주의보(13.5)',
@@ -192,7 +192,7 @@ export const translations = {
 
     // Footer
     footerText: '적재구역 기상 위험 예측 관제 시스템 (SafeStack v1.2) · 공학 역학 기반 판정 엔진',
-    footerSubtext: '기상청 공공데이터 API 실시간 연동 · NASA 항력식/양력식 역학 계산 · Gemini 2.5 Flash Vision',
+    footerSubtext: '샘플 기상 데이터 · NASA 항력식/양력식 역학 계산 · 로컬 안전 규칙',
   },
   en: {
     // Header
@@ -205,7 +205,7 @@ export const translations = {
     aiIntakeBtn: 'AI Visual Intake',
     materialDbBtn: 'Yard & Material Setup',
     resetTooltip: 'Reset Data & Re-calculate',
-    stationConnecting: 'KMA Seoul Mapo AWS #408 Live Station Connected',
+    stationConnecting: 'Sample weather data in use',
     lastUpdated: 'Updated At',
     windAdvisoryNotice: '16:00 Wind Advisory Expected (Max Gust 18.6m/s)',
 
@@ -234,8 +234,8 @@ export const translations = {
     noGreenGuaranteeNotice: '[Safety Guideline Art. 7] This system strictly DOES NOT display a "Green Guarantee of Safety". Even zones with no warnings (FS ≥ 1.3) may have unmeasured vortex gusts or support looseness; physical inspections remain mandatory.',
 
     // Weather Widget
-    weatherTitle: 'KMA Live Observation & Wind Shift Forecast',
-    weatherSubtitle: 'Real-time AWS Ground Wind Speed (10m Reference)',
+    weatherTitle: 'Sample Weather Data & Wind Simulation',
+    weatherSubtitle: 'Test wind risk using sample values',
     virtualSimLabel: 'Virtual Wind Test',
     simNormal: 'Normal(6m/s)',
     simAdvisory: 'Advisory(13.5)',
@@ -379,7 +379,7 @@ export const translations = {
 
     // Footer
     footerText: 'Yard Wind Hazard Prediction Control System (SafeStack v1.2) · Physics Engineering Engine',
-    footerSubtext: 'KMA Open Data API Live Integration · NASA Aerodynamic Drag/Lift Equations · Gemini 2.5 Flash Vision',
+    footerSubtext: 'Sample weather data · NASA aerodynamic equations · local safety rules',
   },
 };
 

@@ -278,7 +278,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
           <div className="text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
             <span>{t.hourlyTimelineTitle}</span>
             <span className="text-[11px] text-slate-500 font-normal">
-              {lang === 'ko' ? '24시간 시간별 기상청 단기예보 추세' : 'KMA 24h short-term forecast trend'}
+              {lang === 'ko' ? '24시간 샘플 예보 추이' : '24h sample forecast trend'}
             </span>
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">

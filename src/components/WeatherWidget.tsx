@@ -106,7 +106,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
             <button
               onClick={() => onSetSimulationWindSpeed(null)}
               className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 rounded-lg text-xs font-semibold flex items-center gap-1 whitespace-nowrap transition-colors cursor-pointer"
-              title={lang === 'ko' ? '기상청 실황 관측치로 복귀' : 'Restore live observed weather'}
+              title={lang === 'ko' ? '기본 샘플값으로 복귀' : 'Restore sample values'}
             >
               <RotateCcw className="w-3 h-3" />
               <span>{t.simReset}</span>
@@ -157,8 +157,8 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
                     ? '가상 시뮬레이션 적용 중'
                     : 'Simulated'
                   : lang === 'ko'
-                  ? '초단기실황 수신'
-                  : 'Live Observed'}
+                  ? '샘플 데이터'
+                  : 'Sample Data'}
               </span>
             </div>
 

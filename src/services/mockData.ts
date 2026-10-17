@@ -319,7 +319,7 @@ export const INITIAL_STOCKS: Record<string, Stock> = {
 };
 
 /**
- * 기상 관측 및 단기예보 데이터 (기상청 초단기실황/단기예보 연계 구조 준용)
+ * 샘플 기상 관측 및 단기예보 시계열
  */
 export const CURRENT_OBSERVED_WEATHER: WeatherCondition = {
   source: '샘플 기상 데이터 (서울 마포)',
@@ -349,7 +349,7 @@ export const NEXT_SHIFT_FORECAST_WEATHER: WeatherCondition = {
 
 export const HOURLY_24H_FORECAST: WeatherCondition[] = [
   {
-    source: '기상청 초단기실황',
+    source: '샘플 관측',
     valid_time: '14:00',
     observed_or_forecast: 'OBSERVED',
     wind_speed_ms: 7.2,
@@ -360,7 +360,7 @@ export const HOURLY_24H_FORECAST: WeatherCondition[] = [
     precipitation_prob: 20,
   },
   {
-    source: '기상청 초단기예보',
+    source: '샘플 예보',
     valid_time: '15:00',
     observed_or_forecast: 'FORECAST',
     wind_speed_ms: 9.5,
@@ -371,7 +371,7 @@ export const HOURLY_24H_FORECAST: WeatherCondition[] = [
     precipitation_prob: 40,
   },
   {
-    source: '기상청 초단기예보',
+    source: '샘플 예보',
     valid_time: '16:00',
     observed_or_forecast: 'FORECAST',
     wind_speed_ms: 12.8,

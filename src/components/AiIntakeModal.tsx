@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { Location, Material, Stock } from '../types';
 import { SAMPLE_EVIDENCE_PHOTOS } from '../services/mockData';
-import { analyzeIntakeEvidenceWithGemini, AiIntakeAnalysis } from '../services/geminiService';
 import {
   X,
   Camera,
   Upload,
-  Sparkles,
   CheckCircle2,
   AlertTriangle,
-  FileText,
-  Loader2,
   Layers,
   ShieldCheck,
   Image as ImageIcon,
@@ -36,9 +32,6 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
   const [selectedLocationId, setSelectedLocationId] = useState(locations[0]?.id || '');
   const [selectedSample, setSelectedSample] = useState(SAMPLE_EVIDENCE_PHOTOS[0]);
   const [customImageUrl, setCustomImageUrl] = useState('');
-  const [specDocText, setSpecDocText] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AiIntakeAnalysis | null>(null);
 
   // 관리자 교차 검증용 폼 상태
   const [confirmedCount, setConfirmedCount] = useState(36);
@@ -50,7 +43,6 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
   const handleSelectPreset = (sample: typeof SAMPLE_EVIDENCE_PHOTOS[0]) => {
     setSelectedSample(sample);
     setCustomImageUrl('');
-    setAnalysisResult(null);
 
     if (sample.id.includes('eps')) {
       const targetLoc = locations.find((l) => l.id.includes('roof')) || locations[0];
@@ -86,29 +78,9 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
       reader.onload = (event) => {
         if (event.target?.result) {
           setCustomImageUrl(event.target.result as string);
-          setAnalysisResult(null);
-        }
+              }
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRunAiAnalysis = async () => {
-    setIsAnalyzing(true);
-    try {
-      const activeUrl = customImageUrl || selectedSample.url;
-      const res = await analyzeIntakeEvidenceWithGemini(activeUrl, specDocText);
-      setAnalysisResult(res);
-
-      setConfirmedCount(res.estimated_count);
-      setConfirmedTiers(res.estimated_stack_tiers);
-      setConfirmedBundleState(res.bundle_state);
-      setConfirmedRatchet(res.has_ratchet_straps);
-      setConfirmedSupportWidth(res.support_width_m);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -145,12 +117,12 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                {isKo ? '입고 사진 및 규격자료 AI 시각 판독 (Gemini 3.8 Flash)' : 'AI Visual Spec & Photo Intake (Gemini 3.8 Flash)'}
+                {isKo ? '입고 사진 첨부 및 확인치 입력' : 'Photo Attachment & Manual Intake'}
               </h2>
               <p className="text-xs text-slate-400">
                 {isKo
-                  ? '지침서 5절: 입고사진/스펙 분석 → 불확실 항목 대조 → 관리자 확정 → 물리 재계산'
-                  : 'Section 5: Intake Photo Analysis → Anomaly Check → Engineer Confirmation → Physics Recalculation'}
+                  ? '지침서 5절: 사진 첨부 → 관리자 확인 → 물리 재계산'
+                  : 'Section 5: Photo Attachment → Engineer Confirmation → Physics Recalculation'}
               </p>
             </div>
           </div>
@@ -240,24 +212,11 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
                 />
               </div>
 
-              {/* AI 실행 버튼 */}
-              <button
-                disabled={isAnalyzing}
-                onClick={handleRunAiAnalysis}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-bold rounded-xl text-xs shadow flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>{isKo ? 'Gemini 3.8 Flash가 역학 파라미터 판독 중...' : 'Gemini 3.8 Flash extracting physics parameters...'}</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>{isKo ? 'Gemini AI 시각 판독 실행하기' : 'Execute Gemini AI Vision Analysis'}</span>
-                  </>
-                )}
-              </button>
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-200">
+                {isKo
+                  ? '이 화면은 외부 AI 분석을 호출하지 않습니다. 사진을 확인한 뒤 아래 수량·적재 단수·결속 상태를 직접 입력하세요.'
+                  : 'This screen does not call an external AI service. Review the photo and enter the count, stack tiers, and fastening state below.'}
+              </div>
             </div>
 
             {/* 우측: 선택된 사진 미리보기 및 실시간 AI 판독 로그 */}
@@ -276,44 +235,11 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
                 </div>
               </div>
 
-              {/* AI 판독 결과 박스 */}
-              {analysisResult ? (
-                <div className="bg-slate-950 border border-blue-500/40 rounded-xl p-3.5 space-y-2 animate-in fade-in">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-blue-400 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                      {isKo ? 'Gemini Vision 판독 완료' : 'Gemini Vision Complete'}
-                    </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {isKo ? '신뢰도' : 'Confidence'}: {(analysisResult.confidence_score * 100).toFixed(0)}%
-                    </span>
-                  </div>
-
-                  <div className="text-slate-300 text-[11px] leading-relaxed bg-slate-900/60 p-2 rounded">
-                    <strong>{isKo ? '엔지니어링 소견:' : 'Engineering Notes:'}</strong> {analysisResult.engineering_notes}
-                  </div>
-
-                  {analysisResult.anomalies_detected.length > 0 && (
-                    <div className="bg-rose-950/40 border border-rose-500/30 rounded p-2 text-rose-300 text-[11px] space-y-1">
-                      <div className="font-bold flex items-center gap-1">
-                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                        {isKo ? '식별된 모순 및 결함:' : 'Anomalies & Deficiencies:'}
-                      </div>
-                      <ul className="list-disc list-inside">
-                        {analysisResult.anomalies_detected.map((a, i) => (
-                          <li key={i}>{a}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="p-4 bg-slate-950/40 border border-dashed border-slate-800 rounded-xl text-center text-slate-500">
-                  {isKo
-                    ? '좌측 파란색 버튼을 누르면 Gemini AI가 사진의 수량, 단수, 결속선을 시각 판독합니다.'
-                    : 'Click the blue button on the left to extract stock counts, tiers, and strap status via Gemini AI.'}
-                </div>
-              )}
+              <div className="p-4 bg-slate-950/40 border border-dashed border-slate-800 rounded-xl text-center text-slate-400">
+                {isKo
+                  ? '사진은 참고 자료로만 첨부됩니다. 아래 확인치 입력값은 선택한 예시 사진의 기본값일 수 있으니 현장에서 다시 확인하세요.'
+                  : 'The photo is attached for reference only. Values below may be preset examples; verify them on site before applying.'}
+              </div>
             </div>
           </div>
 
@@ -323,11 +249,11 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <h4 className="text-xs font-bold text-slate-200">
-                  {isKo ? '3. 관리자 확인치 입력 (AI 추정치 자동 덮어쓰기 방지)' : '3. Engineer Cross-Verification Input'}
+                  {isKo ? '3. 관리자 확인치 직접 입력' : '3. Engineer Verified Values'}
                 </h4>
               </div>
               <span className="text-[11px] text-slate-400">
-                {isKo ? '지침서: "등록값·AI 추정값·관리자 확인값을 분리한다"' : 'Guideline: "Distinguish presets, AI estimates, and verified values"'}
+                {isKo ? '사진 판독 결과가 아니라 관리자가 확인한 값을 기록합니다.' : 'Record values verified by the engineer; presets are examples only.'}
               </span>
             </div>
 
@@ -335,11 +261,6 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
               <div>
                 <label className="text-slate-400 block mb-1">
                   {isKo ? '확인 수량 (개):' : 'Confirmed Count:'}
-                  {analysisResult && (
-                    <span className="text-blue-400 text-[10px] ml-1">
-                      [AI: {analysisResult.estimated_count}]
-                    </span>
-                  )}
                 </label>
                 <input
                   type="number"
@@ -352,11 +273,6 @@ export const AiIntakeModal: React.FC<AiIntakeModalProps> = ({
               <div>
                 <label className="text-slate-400 block mb-1">
                   {isKo ? '적재 단수 (단):' : 'Stack Tiers:'}
-                  {analysisResult && (
-                    <span className="text-blue-400 text-[10px] ml-1">
-                      [AI: {analysisResult.estimated_stack_tiers}]
-                    </span>
-                  )}
                 </label>
                 <input
                   type="number"

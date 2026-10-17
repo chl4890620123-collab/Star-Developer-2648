@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import {
   ConstructionSiteRegion,
-  convertCoordsToKmaGrid,
   getCurrentGpsRegion,
 } from '../services/geoService';
 import { Language } from '../services/i18n';
@@ -67,15 +66,12 @@ export const RegionSelectorModal: React.FC<RegionSelectorModalProps> = ({
 
   const handleCreateRegion = () => {
     if (!newNameKo.trim()) return;
-    const { nx, ny } = convertCoordsToKmaGrid(newLat, newLng);
     const customRegion: ConstructionSiteRegion = {
       id: `region-custom-${Date.now()}`,
       nameKo: newNameKo.trim(),
       nameEn: newNameEn.trim() || newNameKo.trim(),
       lat: newLat,
       lng: newLng,
-      nx,
-      ny,
       addressKo: newAddress.trim() || `위도 ${newLat}, 경도 ${newLng}`,
       addressEn: newAddress.trim() || `Lat ${newLat}, Lng ${newLng}`,
     };
@@ -95,7 +91,7 @@ export const RegionSelectorModal: React.FC<RegionSelectorModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-100">
-                {lang === 'ko' ? '현장 위치 및 기상청 관측 격자 설정' : 'Site Location & KMA Grid Settings'}
+                {lang === 'ko' ? '현장 위치 설정' : 'Site Location Settings'}
               </h2>
               <p className="text-xs text-slate-400">
                 {lang === 'ko'
@@ -125,8 +121,8 @@ export const RegionSelectorModal: React.FC<RegionSelectorModalProps> = ({
               </div>
               <p className="text-slate-400 text-[11px]">
                 {lang === 'ko'
-                  ? '브라우저 GPS 좌표를 획득하여 기상청 최단거리 AWS 격자(nx, ny)를 자동 연동합니다.'
-                  : 'Acquires browser GPS coords and maps directly to the nearest KMA AWS grid.'}
+                  ? '브라우저 GPS 좌표를 읽어 현장 위치로 설정합니다.'
+                  : 'Reads browser GPS coordinates and sets the site location.'}
               </p>
             </div>
 
@@ -225,10 +221,9 @@ export const RegionSelectorModal: React.FC<RegionSelectorModalProps> = ({
                 </div>
 
                 <div className="text-[11px] text-slate-400">
-                  {lang === 'ko' ? '자동 계산된 기상청 격자: ' : 'Calculated KMA Grid: '}
+                  {lang === 'ko' ? '설정 좌표: ' : 'Selected coordinates: '}
                   <span className="font-mono text-amber-300 font-bold">
-                    nx = {convertCoordsToKmaGrid(newLat, newLng).nx}, ny ={' '}
-                    {convertCoordsToKmaGrid(newLat, newLng).ny}
+                    {newLat.toFixed(4)}°, {newLng.toFixed(4)}°
                   </span>
                 </div>
 

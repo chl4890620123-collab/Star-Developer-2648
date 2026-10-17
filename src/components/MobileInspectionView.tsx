@@ -192,7 +192,7 @@ export const MobileInspectionView: React.FC<MobileInspectionViewProps> = ({
         </div>
       </div>
 
-      {/* [사용자 요청 구현] 모바일 전용 AI 현장 안전 비서 (Gemini 3.8 Flash 연동) */}
+      {/* [사용자 요청 구현] 모바일 로컬 규칙 기반 안전 도우미 */}
       <div className="bg-gradient-to-b from-slate-900 to-slate-950 border border-amber-500/40 rounded-2xl p-3.5 shadow-xl space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export const MobileInspectionView: React.FC<MobileInspectionViewProps> = ({
               <h3 className="font-bold text-slate-100 text-xs flex items-center gap-1.5">
                 <span>{activeLang === 'ko' ? 'AI 현장 안전관제 어시스턴트' : 'AI Safety Patrol Assistant'}</span>
                 <span className="text-[10px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded-full font-mono border border-amber-500/30">
-                  Gemini 3.8
+                  로컬 규칙
                 </span>
               </h3>
               <p className="text-[10px] text-slate-400">

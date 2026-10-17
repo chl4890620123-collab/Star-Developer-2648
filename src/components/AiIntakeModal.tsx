@@ -6,10 +6,8 @@ import {
   Camera,
   Upload,
   CheckCircle2,
-  AlertTriangle,
   Layers,
   ShieldCheck,
-  Image as ImageIcon,
 } from 'lucide-react';
 import { Language, getLocalizedLocationName, getLocalizedFloor } from '../services/i18n';
 

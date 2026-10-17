@@ -717,7 +717,7 @@ export default function App() {
         />
       )}
 
-      {/* 4. 모달: 입고 사진 및 규격자료 AI 판독 (Gemini) */}
+      {/* 4. 모달: 사진 첨부 및 수동 확인치 입력 */}
       {isAiIntakeOpen && (
         <AiIntakeModal
           locations={locations}

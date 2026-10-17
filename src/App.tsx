@@ -2,14 +2,14 @@
  * 적재구역 기상 위험 예측 관제 시스템 (SafeStack Weather Guard)
  * 구현 지침서 버전 1.2 전체 규격 준수:
  * - 지침서 6/11절 NASA 공기역학 5대 물리 위험 판정
- * - 기상청 단기예보 2.0 실제 API 연동
+ * - 샘플 기상 데이터 기반 안전 위험 분석
  * - GPS 실시간 좌표 감지 & 전국 주요 건설현장 지역 전환
  * - 적재구역 표고 높이(Elevation) 및 자재 규격 통합 CRUD DB
  * - 한국어(ko) / 영어(en) 100% 원클릭 다국어 지원
  * - "나노 바나나" 생성 고해상도 3D 관제 및 CFD 시뮬레이션 에셋 통합
  */
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Location,
   Material,
@@ -43,7 +43,6 @@ import { SafetyAlarmBanner } from './components/SafetyAlarmBanner';
 
 import { notificationService } from './services/notificationService';
 import { Language, translations } from './services/i18n';
-import { fetchLiveKmaWeather } from './services/kmaWeatherService';
 import { DEFAULT_SITE_REGIONS, ConstructionSiteRegion } from './services/geoService';
 
 import { Filter, Search, AlertTriangle, Check, Download } from 'lucide-react';
@@ -148,29 +147,7 @@ export default function App() {
   const [currentWeather, setCurrentWeather] = useState<WeatherCondition>(CURRENT_OBSERVED_WEATHER);
   const [nextShiftWeather, setNextShiftWeather] = useState<WeatherCondition>(NEXT_SHIFT_FORECAST_WEATHER);
   const [hourlyForecast, setHourlyForecast] = useState<WeatherCondition[]>(HOURLY_24H_FORECAST);
-  const [isLiveKma, setIsLiveKma] = useState(false);
   const [lastUpdated, setLastUpdated] = useState('14:15');
-
-  // 기상청 실시간 API 데이터 동기화 (현재 지역 격자 nx, ny 기준)
-  const loadKmaLiveWeather = useCallback(
-    async (currentLang: Language, nx: number, ny: number) => {
-      try {
-        const res = await fetchLiveKmaWeather(nx, ny, currentLang);
-        setCurrentWeather(res.currentWeather);
-        setNextShiftWeather(res.nextShiftWeather);
-        setHourlyForecast(res.hourlyForecast);
-        setIsLiveKma(res.isLiveApiData);
-        setLastUpdated(new Date().toLocaleTimeString());
-      } catch (e) {
-        console.warn('KMA load error:', e);
-      }
-    },
-    []
-  );
-
-  useEffect(() => {
-    loadKmaLiveWeather(lang, currentRegion.nx, currentRegion.ny);
-  }, [lang, currentRegion, loadKmaLiveWeather]);
 
   // URL 파라미터 기반 상태 초기화 (데모 촬영 및 딥링크 지원)
   const searchParams = useMemo(() => new URLSearchParams(window.location.search), []);
@@ -539,7 +516,6 @@ export default function App() {
       address: lang === 'ko' ? region.addressKo : region.addressEn,
       coordinates: { lat: region.lat, lng: region.lng },
     }));
-    loadKmaLiveWeather(lang, region.nx, region.ny);
   };
 
   const handleAddNewRegion = (region: ConstructionSiteRegion) => {
@@ -554,7 +530,6 @@ export default function App() {
     setMaterials(INITIAL_MATERIALS);
     setLocations(INITIAL_LOCATIONS);
     setSimulationWindSpeed(null);
-    loadKmaLiveWeather(lang, currentRegion.nx, currentRegion.ny);
     setToastMessage(lang === 'ko' ? '현장 표준 데이터셋으로 재설정 및 역학 재계산 완료!' : 'Reset to baseline and re-calculated!');
     setTimeout(() => setToastMessage(null), 3000);
   };
@@ -574,7 +549,6 @@ export default function App() {
         currentRegionName={lang === 'ko' ? currentRegion.nameKo : currentRegion.nameEn}
         onResetData={handleResetData}
         lastUpdated={lastUpdated}
-        isLiveKma={isLiveKma}
       />
 
       {/* 1-1. 자동 안전 경보 시스템 배너 (Notification API & Siren) */}
@@ -599,7 +573,6 @@ export default function App() {
             currentWindSpeed={activeWeather.wind_speed_ms}
             gustSpeed={activeWeather.gust_speed_ms}
             dangerCount={kpiStats.dangerCount}
-            isLiveKma={isLiveKma}
             onSelectDangerFilter={() => {
               setSelectedRiskFilter('DANGER');
               document.getElementById('yard-grid')?.scrollIntoView({ behavior: 'smooth' });

@@ -7,7 +7,7 @@ import {
   RiskLevel,
 } from '../types';
 import { evaluateHazards } from '../services/physicsEngine';
-import { askMobileSafetyAssistant, SafetyQnaResponse } from '../services/geminiService';
+import { answerMobileSafetyQuestion, SafetyQnaResponse } from '../services/localSafetyAssistant';
 import {
   AlertOctagon,
   AlertTriangle,
@@ -120,7 +120,7 @@ export const MobileInspectionView: React.FC<MobileInspectionViewProps> = ({
     if (!q) return;
     setIsAiLoading(true);
     try {
-      const res = await askMobileSafetyAssistant(q, {
+      const res = await answerMobileSafetyQuestion(q, {
         currentWeather,
         locations,
         stocks,

@@ -271,7 +271,7 @@ export const RegionSelectorModal: React.FC<RegionSelectorModalProps> = ({
                           {lang === 'ko' ? reg.addressKo : reg.addressEn}
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">
-                          격자 (nx: {reg.nx}, ny: {reg.ny}) | 좌표 ({reg.lat.toFixed(2)}°, {reg.lng.toFixed(2)}°)
+                          {lang === 'ko' ? '좌표' : 'Coordinates'} ({reg.lat.toFixed(2)}°, {reg.lng.toFixed(2)}°)
                         </div>
                       </div>
 

@@ -322,7 +322,7 @@ export const INITIAL_STOCKS: Record<string, Stock> = {
  * 기상 관측 및 단기예보 데이터 (기상청 초단기실황/단기예보 연계 구조 준용)
  */
 export const CURRENT_OBSERVED_WEATHER: WeatherCondition = {
-  source: '기상청 초단기실황 (서울 마포 AWS #408)',
+  source: '샘플 기상 데이터 (서울 마포)',
   valid_time: '14:00 현재 관측',
   observed_or_forecast: 'OBSERVED',
   wind_speed_ms: 7.2,
@@ -335,7 +335,7 @@ export const CURRENT_OBSERVED_WEATHER: WeatherCondition = {
 };
 
 export const NEXT_SHIFT_FORECAST_WEATHER: WeatherCondition = {
-  source: '기상청 단기예보 (풍속 급변 다음 시각)',
+  source: '샘플 예보 (풍속 급변 다음 시각)',
   valid_time: '16:00 예보 (2시간 뒤 풍속 급상승)',
   observed_or_forecast: 'FORECAST',
   wind_speed_ms: 12.8,
@@ -383,7 +383,7 @@ export const HOURLY_24H_FORECAST: WeatherCondition[] = [
     warning_issued: 'WIND_ADVISORY',
   },
   {
-    source: '기상청 단기예보',
+    source: '샘플 예보',
     valid_time: '17:00',
     observed_or_forecast: 'FORECAST',
     wind_speed_ms: 14.5,
@@ -395,7 +395,7 @@ export const HOURLY_24H_FORECAST: WeatherCondition[] = [
     warning_issued: 'WIND_ADVISORY',
   },
   {
-    source: '기상청 단기예보',
+    source: '샘플 예보',
     valid_time: '18:00',
     observed_or_forecast: 'FORECAST',
     wind_speed_ms: 15.2,
@@ -407,7 +407,7 @@ export const HOURLY_24H_FORECAST: WeatherCondition[] = [
     warning_issued: 'WIND_ADVISORY',
   },
   {
-    source: '기상청 단기예보',
+    source: '샘플 예보',
     valid_time: '21:00',
     observed_or_forecast: 'FORECAST',
     wind_speed_ms: 11.0,
@@ -418,7 +418,7 @@ export const HOURLY_24H_FORECAST: WeatherCondition[] = [
     precipitation_prob: 50,
   },
   {
-    source: '기상청 단기예보',
+    source: '샘플 예보',
     valid_time: '00:00 (익일)',
     observed_or_forecast: 'FORECAST',
     wind_speed_ms: 8.4,
@@ -429,7 +429,7 @@ export const HOURLY_24H_FORECAST: WeatherCondition[] = [
     precipitation_prob: 20,
   },
   {
-    source: '기상청 단기예보',
+    source: '샘플 예보',
     valid_time: '06:00 (익일)',
     observed_or_forecast: 'FORECAST',
     wind_speed_ms: 5.6,

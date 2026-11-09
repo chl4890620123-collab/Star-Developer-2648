@@ -61,11 +61,11 @@ export function evaluateHazards(
   sensitivityInsight: string;
 } {
   // 1. 유효 풍속 및 순간 돌풍 계산
-  const effectiveWind = getEffectiveWindSpeed(weather.wind_speed_ms || 7.2, location.elevation_m || 0, location.exposure_conditions || 'SEMI_ENCLOSED');
-  const effectiveGust = getEffectiveWindSpeed(weather.gust_speed_ms || 11.4, location.elevation_m || 0, location.exposure_conditions || 'SEMI_ENCLOSED');
+  const effectiveWind = getEffectiveWindSpeed(weather.wind_speed_ms ?? 7.2, location.elevation_m || 0, location.exposure_conditions || 'SEMI_ENCLOSED');
+  const effectiveGust = getEffectiveWindSpeed(weather.gust_speed_ms ?? 11.4, location.elevation_m || 0, location.exposure_conditions || 'SEMI_ENCLOSED');
 
   // 2. 물리적 형상 및 질량 계산 (결측치 안전 폴백)
-  const singleMass = Math.max(0.1, material.mass_kg || 10.0);
+  const singleMass = Math.max(0.1, material.mass_kg ?? 10.0);
   const totalCount = Math.max(0, stock.count ?? 1);
   const totalMass = singleMass * totalCount;
   const totalWeightN = totalMass * GRAVITY;
@@ -106,9 +106,9 @@ export function evaluateHazards(
   // ==========================================
   // [A] 미끄러짐 (Sliding) 계산
   // ==========================================
-  const dragCoeff = material.drag_coefficient || 1.2;
-  const liftCoeff = material.lift_coefficient || 0.3;
-  const frictionCoeff = stock.friction_coefficient || 0.4;
+  const dragCoeff = material.drag_coefficient ?? 1.2;
+  const liftCoeff = material.lift_coefficient ?? 0.3;
+  const frictionCoeff = stock.friction_coefficient ?? 0.4;
   const q_gust = 0.5 * AIR_DENSITY * Math.pow(effectiveGust, 2);
   const dragForceN = q_gust * dragCoeff * projArea;
   const liftForceN = q_gust * liftCoeff * topArea;
@@ -180,8 +180,8 @@ export function evaluateHazards(
   // ==========================================
   const centerOfPressureH = stackHeight / 2;
   const overturnMomentNm = dragForceN * centerOfPressureH;
-  const supportWidth = stock.support_geometry?.support_width_m || 0.8;
-  const supportHalfWidth = Math.max(0.1, supportWidth / 2);
+  const supportWidth = stock.support_geometry?.support_width_m ?? 0.8;
+  const supportHalfWidth = Math.max(0, supportWidth / 2);
   const resistMomentNm = Math.max(0, (totalWeightN - liftForceN) * supportHalfWidth) + strapResistMomentNm;
 
   const raw_fs_topple = overturnMomentNm > 0 ? resistMomentNm / overturnMomentNm : 99.9;
@@ -241,7 +241,7 @@ export function evaluateHazards(
     applied_parameters: {
       [lang === 'ko' ? '전도 모멘트 M_ot (N·m)' : 'Overturning Moment M_ot (N·m)']: Math.round(overturnMomentNm),
       [lang === 'ko' ? '복원 모멘트 M_res (N·m)' : 'Restoring Moment M_res (N·m)']: Math.round(resistMomentNm),
-      [lang === 'ko' ? '받침 지지폭 W_sup (m)' : 'Support Width W_sup (m)']: stock.support_geometry.support_width_m,
+      [lang === 'ko' ? '받침 지지폭 W_sup (m)' : 'Support Width W_sup (m)']: supportWidth,
       [lang === 'ko' ? '적재 높이 H (m)' : 'Stack Height H (m)']: Number(stackHeight.toFixed(2)),
     },
     causes: toppleCauses,
@@ -570,7 +570,7 @@ export function evaluateHazards(
 
   let sensitivityInsight = '';
   if (lang === 'ko') {
-    if (stock.support_geometry.support_width_m < 0.6 && worstHazard.hazard_type === 'toppling') {
+    if (supportWidth < 0.6 && worstHazard.hazard_type === 'toppling') {
       sensitivityInsight = `[민감도 진단] 받침목 지지 폭을 20cm 확대할 경우 전도 안전율이 약 ${(worstHazard.safety_factor * 1.45).toFixed(2)}배 증가하여 경고가 해제될 수 있습니다.`;
     } else if (!stock.fastening.has_ratchet_straps && (worstHazard.hazard_type === 'sliding' || worstHazard.hazard_type === 'toppling')) {
       sensitivityInsight = `[민감도 진단] 2.5kN 래칫 결속 벨트 1개를 추가 체결하면 임계 풍속이 +${(effectiveGust * 0.4).toFixed(1)}m/s 향상됩니다.`;
@@ -580,7 +580,7 @@ export function evaluateHazards(
       sensitivityInsight = `[민감도 진단] 바닥 접촉면에 고무 마찰 패드를 덧댈 경우(μ 0.35→0.65) 미끄러짐 저항력이 85% 증가합니다.`;
     }
   } else {
-    if (stock.support_geometry.support_width_m < 0.6 && worstHazard.hazard_type === 'toppling') {
+    if (supportWidth < 0.6 && worstHazard.hazard_type === 'toppling') {
       sensitivityInsight = `[Sensitivity] Widening dunnage support base by 20cm increases toppling safety factor ~1.45× to clear warning.`;
     } else if (!stock.fastening.has_ratchet_straps && (worstHazard.hazard_type === 'sliding' || worstHazard.hazard_type === 'toppling')) {
       sensitivityInsight = `[Sensitivity] Adding one 2.5kN ratchet tie-down increases critical wind capacity by +${(effectiveGust * 0.4).toFixed(1)}m/s.`;
